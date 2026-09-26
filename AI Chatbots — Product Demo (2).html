@@ -9,14 +9,27 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:#0a0a0a;overflow:hidden;font-family:-apple-system,Segoe UI,Roboto,sans-serif}
 #stage{position:relative;width:100%;height:100%;padding-top:var(--pad-t);padding-bottom:var(--pad-b);display:flex;align-items:center;justify-content:center}
+
+/* ===== ambient background graphics (all scenes) ===== */
+#bgfx{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+#bgfx .glow{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55;animation:driftGlow 22s ease-in-out infinite}
+#bgfx .g1{width:520px;height:520px;background:radial-gradient(circle,#7c3aed,transparent 70%);top:-140px;left:-120px;animation-duration:26s}
+#bgfx .g2{width:480px;height:480px;background:radial-gradient(circle,#c084fc,transparent 70%);bottom:-160px;right:-100px;animation-duration:30s;animation-delay:-6s}
+#bgfx .g3{width:360px;height:360px;background:radial-gradient(circle,#4c1d95,transparent 70%);top:40%;left:50%;animation-duration:34s;animation-delay:-14s}
+@keyframes driftGlow{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,-30px) scale(1.08)}66%{transform:translate(-30px,25px) scale(.95)}}
+#bgfx .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(192,132,252,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(192,132,252,.05) 1px,transparent 1px);background-size:46px 46px;-webkit-mask-image:radial-gradient(circle at 50% 40%,#000 0%,transparent 70%);mask-image:radial-gradient(circle at 50% 40%,#000 0%,transparent 70%)}
+#bgfx .spark{position:absolute;width:3px;height:3px;border-radius:50%;background:#e9d5ff;box-shadow:0 0 8px 2px rgba(192,132,252,.8);animation:sparkTwinkle 3.6s ease-in-out infinite}
+@keyframes sparkTwinkle{0%,100%{opacity:.15;transform:scale(.7)}50%{opacity:1;transform:scale(1.3)}}
+#stage{z-index:2}
+#playBtn,#speedPanel,#pauseHint,.pinlabel,.sidelabel{z-index:80}
 .scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;filter:blur(10px);transform:scale(.92);transition:opacity .75s cubic-bezier(.2,.7,.3,1),transform .75s cubic-bezier(.2,.7,.3,1),filter .75s ease;pointer-events:none}
 .scene.active{opacity:1;filter:blur(0);transform:scale(1);pointer-events:auto}
 #playBtn{position:fixed;top:calc(16px + var(--pad-t));right:16px;width:54px;height:54px;border-radius:50%;border:none;background:#fff;color:#111;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 6px rgba(192,132,252,.18),0 8px 24px rgba(0,0,0,.5);z-index:80}
 .pinlabel{position:fixed;top:calc(30px + var(--pad-t));left:0;right:0;text-align:center;color:#fff;z-index:40;opacity:0;transform:translateY(-10px);transition:opacity .7s ease,transform .7s ease;pointer-events:none}
 .pinlabel.show{opacity:1;transform:translateY(0)}
 .pinlabel h1{font-size:clamp(20px,3.4vw,30px);font-weight:700;letter-spacing:-.02em;text-shadow:0 0 40px rgba(192,132,252,.5)}
-.pinlabel p{margin-top:6px;font-size:12px;color:#8a8a8a}
-#speedPanel{position:fixed;bottom:calc(16px + var(--pad-b));left:16px;display:flex;gap:6px;z-index:80}
+.pinlabel p{margin-top:6px;font-size:13px;color:#d8d3e6}
+#speedPanel{position:fixed;bottom:calc(16px + var(--pad-b));left:16px;display:none;gap:6px;z-index:80}
 #speedPanel button{background:rgba(255,255,255,.1);color:#ddd;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:6px 10px;font-size:11px;cursor:pointer}
 #speedPanel button.on{background:#c084fc;color:#1a0b1f;border-color:#c084fc;font-weight:700}
 #pauseHint{position:fixed;bottom:calc(16px + var(--pad-b));right:16px;color:#8a8a8a;font-size:11px;z-index:80;opacity:0;transition:opacity .3s ease}
@@ -26,12 +39,41 @@ html,body{height:100%;background:#0a0a0a;overflow:hidden;font-family:-apple-syst
 .kinetic{color:#fff;text-align:center;font-size:clamp(24px,5.2vw,46px);font-weight:700;letter-spacing:-.02em;line-height:1.28;padding:0 34px;text-shadow:0 0 50px rgba(192,132,252,.55)}
 .kinetic.small{font-size:clamp(17px,3.2vw,26px);font-weight:600}
 .glowbar{width:64px;height:3px;background:linear-gradient(90deg,transparent,#c084fc,transparent);margin:20px auto 0;border-radius:2px}
-.title-wrap{text-align:center;color:#fff}
-.title-wrap h1{font-size:clamp(28px,6vw,54px);font-weight:700;letter-spacing:-.02em;text-shadow:0 0 50px rgba(192,132,252,.5)}
-.title-wrap p{margin-top:10px;font-size:15px;color:#8a8a8a}
+.title-wrap{text-align:center;color:#fff;max-width:640px;padding:0 32px}
+.title-wrap h1{font-size:clamp(30px,6vw,56px);font-weight:800;letter-spacing:-.02em;line-height:1.18;text-shadow:0 0 55px rgba(192,132,252,.55)}
+.title-wrap p{margin-top:16px;font-size:16px;color:#cfc9de;line-height:1.7}
+.title-wrap .ctapill{display:inline-flex;align-items:center;gap:9px;margin-top:28px;padding:15px 28px;border-radius:999px;background:linear-gradient(135deg,#e9d5ff,#a855f7 55%,#7c3aed);color:#1a0b2e;font-weight:700;font-size:14.5px;letter-spacing:-.01em;box-shadow:0 0 40px rgba(192,132,252,.55);animation:ctaPulse 2.4s ease-in-out infinite}
+@keyframes ctaPulse{0%,100%{transform:scale(1);box-shadow:0 0 36px rgba(192,132,252,.5)}50%{transform:scale(1.035);box-shadow:0 0 60px rgba(192,132,252,.8)}}
+.title-wrap .ctapill svg{width:16px;height:16px}
+
+/* real-sentence story captions (voiceover-length) */
+.storytext{max-width:680px;text-align:center;padding:0 40px}
+.storytext.benefitswrap{text-align:left;max-width:640px}
+.storytext.benefitswrap .lead{text-align:left}
+.storytext.benefitswrap .glowbar{margin-left:0}
+.storytext .lead{color:#fff;font-size:clamp(22px,3.8vw,36px);font-weight:700;letter-spacing:-.01em;line-height:1.3;text-shadow:0 0 40px rgba(192,132,252,.5)}
+.storytext .sub{margin-top:16px;color:#c9c3d6;font-size:clamp(14px,1.7vw,18px);line-height:1.65;font-weight:400}
+.storytext .glowbar{margin-top:24px}
+.benefits{display:block;margin-top:26px}
+.benefits li{list-style:none;color:#e4dff0;font-size:clamp(14px,1.8vw,19px);line-height:1.8;padding-left:30px;position:relative;opacity:0;animation:fadeInUp .6s ease forwards}
+.benefits li::before{content:'✓';position:absolute;left:0;top:1px;width:19px;height:19px;border-radius:50%;background:rgba(192,132,252,.15);color:#e9d5ff;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(192,132,252,.5)}
+.benefits li:nth-child(1){animation-delay:.2s}
+.benefits li:nth-child(2){animation-delay:1s}
+.benefits li:nth-child(3){animation-delay:1.8s}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* left/right showcase labels */
+.sidelabel{position:fixed;top:50%;color:#fff;z-index:40;opacity:0;transition:opacity .6s ease,transform .6s ease;pointer-events:none;max-width:250px}
+.sidelabel.left{left:4%;transform:translateY(-50%) translateX(-16px)}
+.sidelabel.right{right:4%;transform:translateY(-50%) translateX(16px)}
+.sidelabel.show{opacity:1}
+.sidelabel.left.show{transform:translateY(-50%) translateX(0)}
+.sidelabel.right.show{transform:translateY(-50%) translateX(0)}
+.sidelabel h1{font-size:clamp(19px,2.4vw,28px);font-weight:800;line-height:1.3;text-shadow:0 0 30px rgba(192,132,252,.5)}
+.sidelabel p{margin-top:10px;font-size:13.5px;color:#d8d3e6;line-height:1.65}
 
 /* ===== phone shell (unchanged) ===== */
-.shell{width:296px;height:606px;background:#050505;border-radius:46px;padding:11px;box-shadow:0 40px 80px rgba(0,0,0,.6),0 0 0 2px #1a1a1a}
+.shell{position:relative;width:296px;height:606px;background:#050505;border-radius:46px;padding:11px;box-shadow:0 40px 80px rgba(0,0,0,.6),0 0 0 2px #1a1a1a,0 0 60px rgba(192,132,252,.3)}
 .screen{position:relative;width:100%;height:100%;border-radius:36px;overflow:hidden;display:flex;flex-direction:column}
 .notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:84px;height:20px;background:#050505;border-radius:12px;z-index:6}
 .homebar{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);width:110px;height:4px;border-radius:3px;z-index:6}
@@ -199,7 +241,7 @@ html,body{height:100%;background:#0a0a0a;overflow:hidden;font-family:-apple-syst
 .d10 .send10{width:36px;height:36px;border-radius:50%;background:#e8722c;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
 
 /* ===== website + widget scenes ===== */
-.website{width:640px;height:540px;border-radius:16px;overflow:hidden;position:relative;box-shadow:0 40px 90px rgba(0,0,0,.6)}
+.website{width:640px;height:540px;border-radius:16px;overflow:hidden;position:relative;box-shadow:0 40px 90px rgba(0,0,0,.6),0 0 70px rgba(192,132,252,.28)}
 .website .nav{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid rgba(255,255,255,.08)}
 .website .logo{font-weight:700;font-size:14px}
 .website .navlinks{display:flex;gap:18px;font-size:11px;opacity:.65}
@@ -207,35 +249,154 @@ html,body{height:100%;background:#0a0a0a;overflow:hidden;font-family:-apple-syst
 .website .hero h3{font-size:27px;font-weight:700;max-width:320px;line-height:1.3}
 .website .hero p{font-size:12.5px;margin-top:10px;max-width:280px;opacity:.7}
 .website .btn{display:inline-block;margin-top:18px;padding:11px 20px;border-radius:8px;font-size:12px;font-weight:700}
-.widget{position:absolute;right:22px;top:70px;bottom:22px;width:228px;border-radius:16px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.5);display:flex;flex-direction:column}
+.widget{position:absolute;right:22px;top:70px;bottom:22px;width:228px;border-radius:16px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.5),0 0 40px rgba(192,132,252,.25);display:flex;flex-direction:column;animation:openWidget .32s cubic-bezier(.22,.85,.3,1) both;transform-origin:bottom right}
+@keyframes openWidget{0%{opacity:0;transform:scale(.85)}100%{opacity:1;transform:scale(1)}}
+.widget .wtoggle-icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;opacity:0;animation:toggleIconFade .5s ease both}
+@keyframes toggleIconFade{0%{opacity:1}30%{opacity:1}55%{opacity:0}100%{opacity:0}}
 .widget .whd{padding:14px 16px;font-size:12px;font-weight:700;flex-shrink:0}
 .widget .wbody{padding:14px;display:flex;flex-direction:column;gap:12px;flex:1;overflow:hidden}
-.widget .wbot{font-size:11.5px;padding:9px 12px;border-radius:11px;max-width:90%;line-height:1.45}
+.widget .wbot{font-size:11.5px;padding:9px 12px;border-radius:11px;max-width:90%;line-height:1.45;min-height:1.45em}
 .widget .wme{font-size:11.5px;padding:9px 12px;border-radius:11px;max-width:90%;align-self:flex-end;line-height:1.45}
 .widget .winput{margin:0 14px 14px;border-radius:14px;padding:10px 12px;font-size:11px;flex-shrink:0}
+.reply-after{opacity:0;transform:translateY(8px);transition:opacity .4s ease,transform .4s ease}
+.reply-after.show{opacity:1;transform:translateY(0)}
 
-/* ===== RAG scene ===== */
-.ragstage{position:relative;width:680px;height:420px;display:flex;align-items:center;justify-content:center}
-.ragnode{position:relative;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,#c084fc,#4c1d95 70%);box-shadow:0 0 60px rgba(192,132,252,.5);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;z-index:3}
-.ragstage.run .ragnode{animation:pulseGlow 1.8s ease 2.6s both}
-@keyframes pulseGlow{0%{box-shadow:0 0 40px rgba(192,132,252,.4)}50%{box-shadow:0 0 130px rgba(192,132,252,.9)}100%{box-shadow:0 0 80px rgba(192,132,252,.6)}}
-.doc{position:absolute;top:50%;left:50%;width:44px;height:56px;margin:-28px 0 0 -22px;background:#17141c;border:1px solid #2c2738;border-radius:6px;opacity:0;font-size:8px;color:#a78bfa;display:flex;align-items:center;justify-content:center;text-align:center}
-.ragstage.run .doc{animation:conv 2.6s ease forwards}
-@keyframes conv{0%{opacity:1;transform:translate(var(--sx),var(--sy)) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(0,0) scale(.15)}}
-.ragcap{position:absolute;top:24px;left:0;right:0;text-align:center;color:#a78bfa;font-size:11px;letter-spacing:.08em}
-.raganswer{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:#17141c;border:1px solid #2c2738;color:#e9e2f5;padding:12px 20px;border-radius:14px;font-size:12.5px;max-width:380px;text-align:center;opacity:0}
-.ragstage.run .raganswer{animation:fadeUp .8s ease 3.4s forwards}
-@keyframes fadeUp{from{opacity:0;transform:translate(-50%,14px)}to{opacity:1;transform:translate(-50%,0)}}
+/* Scene: solution intro animation */
+.solution-badge{position:relative;width:64px;height:64px;margin:0 auto 22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e9d5ff,#a855f7 55%,#5b21b6 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px rgba(192,132,252,.6)}
+.solution-badge svg{width:28px;height:28px;color:#fff;position:relative;z-index:2}
+.solution-badge .ping{position:absolute;inset:0;border-radius:50%;border:1.5px solid rgba(192,132,252,.65);opacity:0}
+#solutionScene .solution-badge,#solutionScene .lead,#solutionScene .sub,#solutionScene .glowbar{opacity:0;transform:translateY(14px)}
+#solutionScene.active .solution-badge{animation:solFadeUp .6s ease .1s forwards}
+#solutionScene.active .lead{animation:solFadeUp .6s ease .3s forwards}
+#solutionScene.active .sub{animation:solFadeUp .6s ease .5s forwards}
+#solutionScene.active .glowbar{animation:solFadeUp .6s ease .7s forwards}
+#solutionScene.active .solution-badge .ping{animation:pingRing 2.4s ease-out infinite}
+#solutionScene.active .solution-badge .ping.p2{animation-delay:1.2s}
+@keyframes solFadeUp{to{opacity:1;transform:translateY(0)}}
+@keyframes pingRing{0%{transform:scale(1);opacity:.7}100%{transform:scale(2.3);opacity:0}}
+.hookcards{position:absolute;left:4%;top:50%;width:230px;height:400px;transform:translateY(-50%);z-index:2;pointer-events:none}
+.hcard{position:absolute;left:0;width:212px;display:flex;align-items:center;gap:10px;background:#141018;border:1px solid #2a2233;border-radius:12px;padding:10px 12px;opacity:0;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.hcard-ic{width:17px;height:17px;flex-shrink:0;color:#c084fc;filter:drop-shadow(0 0 6px rgba(192,132,252,.6))}
+.hcard-ic svg{width:100%;height:100%;display:block}
+.hcard b{display:block;color:#f1e9fb;font-size:12px}
+.hcard small{color:#8a8394;font-size:10px}
+.hcard:nth-child(1){top:0%;--r:-5deg}
+.hcard:nth-child(2){top:22%;--r:3deg}
+.hcard:nth-child(3){top:44%;--r:-3deg}
+.hcard:nth-child(4){top:66%;--r:5deg}
+.hcard:nth-child(5){top:86%;--r:-2deg}
+.scene.active .hcard{animation:hcardIn .7s cubic-bezier(.2,.8,.3,1) forwards,hcardFloat 4.6s ease-in-out infinite;animation-delay:var(--d),calc(var(--d) + .7s)}
+@keyframes hcardIn{from{opacity:0;transform:translateX(-24px) rotate(var(--r,0deg)) scale(.9)}to{opacity:1;transform:translateX(0) rotate(var(--r,0deg)) scale(1)}}
+@keyframes hcardFloat{0%,100%{transform:translateX(0) rotate(var(--r,0deg)) translateY(0)}50%{transform:translateX(0) rotate(var(--r,0deg)) translateY(-6px)}}
+.howstage{position:relative;width:1040px;max-width:94vw;height:520px;display:flex;flex-direction:column;gap:26px}
+.how-eyebrow{color:#c084fc;font-size:11px;letter-spacing:.12em;font-weight:700;text-shadow:0 0 18px rgba(192,132,252,.6)}
+.how-head h2{color:#fff;font-size:clamp(22px,3.2vw,32px);font-weight:800;margin-top:6px;letter-spacing:-.02em}
+.how-body{position:relative;flex:1;display:flex;align-items:center;justify-content:space-between}
+.how-body::before{content:'';position:absolute;left:50%;top:50%;width:440px;height:440px;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(139,58,201,.35),rgba(76,29,149,.12) 55%,transparent 75%);border-radius:50%;opacity:0;transition:opacity 1s ease}
+.howstage.run .how-body::before{opacity:1}
+
+/* fanned document card stack */
+.how-docs{position:relative;width:220px;height:100%;flex-shrink:0}
+.hdoc{position:absolute;left:0;width:210px;display:flex;align-items:center;gap:10px;background:#141018;border:1px solid #2a2233;border-radius:12px;padding:10px 12px;opacity:0;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:box-shadow .3s ease}
+.hdoc:nth-child(1){top:6%;transform:translateX(-30px) rotate(-4deg)}
+.hdoc:nth-child(2){top:22%;transform:translateX(-30px) rotate(-2deg)}
+.hdoc:nth-child(3){top:38%;transform:translateX(-30px) rotate(0deg)}
+.hdoc:nth-child(4){top:54%;transform:translateX(-30px) rotate(2deg)}
+.hdoc:nth-child(5){top:70%;transform:translateX(-30px) rotate(4deg)}
+.howstage.run .hdoc{animation:hdocIn .7s cubic-bezier(.2,.8,.3,1) forwards,hdocFloat 4.4s ease-in-out infinite;animation-delay:var(--d),calc(var(--d) + .7s)}
+.hdoc:hover{box-shadow:0 10px 34px rgba(192,132,252,.35)}
+.hdoc-ic{width:18px;height:18px;flex-shrink:0;color:#c084fc;filter:drop-shadow(0 0 6px rgba(192,132,252,.6))}
+.hdoc-ic svg{width:100%;height:100%;display:block}
+.hdoc b{display:block;color:#f1e9fb;font-size:12.5px}
+.hdoc small{color:#8a8394;font-size:10.5px}
+@keyframes hdocIn{from{opacity:0;transform:translateX(-30px) rotate(var(--r,0deg)) scale(.9)}to{opacity:1;transform:translateX(0) rotate(var(--r,0deg)) scale(1)}}
+.hdoc:nth-child(1){--r:-4deg}.hdoc:nth-child(2){--r:-2deg}.hdoc:nth-child(3){--r:0deg}.hdoc:nth-child(4){--r:2deg}.hdoc:nth-child(5){--r:4deg}
+@keyframes hdocFloat{0%,100%{transform:translateX(0) rotate(var(--r,0deg)) translateY(0)}50%{transform:translateX(0) rotate(var(--r,0deg)) translateY(-6px)}}
+
+/* connector svg (curved flowing lines + particles) */
+.how-links{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.how-links path{fill:none;stroke:#5b4a6e;stroke-width:1.4;stroke-dasharray:5 6;opacity:.55}
+.howstage.run .how-links path{animation:dashFlow 1.8s linear infinite}
+@keyframes dashFlow{to{stroke-dashoffset:-22}}
+.how-links circle.particle{fill:#e9d5ff;filter:drop-shadow(0 0 5px rgba(192,132,252,.9))}
+
+.how-knowledge-wrap{position:relative;width:220px;height:220px;flex-shrink:0;display:flex;align-items:center;justify-content:center;z-index:2}
+.atom-rings{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:1}
+.atom-rings .ring ellipse{fill:none;stroke:rgba(192,132,252,.4);stroke-width:1.2}
+.atom-rings .atom-dot{fill:#e9d5ff;filter:drop-shadow(0 0 6px rgba(192,132,252,.9))}
+.howstage.run .atom-rings .ring{animation:ringFade 2.4s ease .3s both}
+@keyframes ringFade{from{opacity:0}to{opacity:1}}
+.how-knowledge{position:relative;width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 40% 32%,#d9b6ff,#a855f7 45%,#4c1d95 85%);box-shadow:0 0 60px rgba(192,132,252,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;letter-spacing:.06em;z-index:2}
+.howstage.run .how-knowledge{animation:pulseGlow 2.4s ease infinite}
+@keyframes pulseGlow{0%{box-shadow:0 0 40px rgba(192,132,252,.4)}50%{box-shadow:0 0 90px rgba(192,132,252,.85)}100%{box-shadow:0 0 40px rgba(192,132,252,.4)}}
+.hk-ic{width:26px;height:26px;margin-bottom:3px;color:#fff;filter:drop-shadow(0 0 8px rgba(255,255,255,.5))}
+.hk-ic svg{width:100%;height:100%;display:block}
+
+.how-chat{width:300px;flex-shrink:0;background:rgba(18,16,26,.7);backdrop-filter:blur(6px);border:1px solid #3a2f4d;border-radius:16px;padding:16px;box-shadow:0 0 0 1px rgba(192,132,252,.05),0 30px 60px rgba(0,0,0,.5);opacity:0;transform:translateX(16px)}
+.howstage.run .how-chat{animation:hchatIn .6s ease .5s forwards}
+@keyframes hchatIn{to{opacity:1;transform:translateX(0)}}
+.hc-head{display:flex;align-items:center;gap:10px;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid #2a2436}
+.hc-ic{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,#d9b6ff,#9333ea);box-shadow:0 0 16px rgba(192,132,252,.6);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff}
+.hc-ic svg{width:16px;height:16px}
+.hc-head b{display:block;color:#fff;font-size:12.5px}
+.hc-head small{color:#8a8394;font-size:10px}
+.hc-msg{border-radius:12px;padding:10px 12px;font-size:11.5px;color:#e9e2f5;margin-top:10px;opacity:0;transform:translateY(8px)}
+.hc-msg.customer{border:1px solid #3a2f4d;background:rgba(255,255,255,.02);margin-left:32px}
+.hc-msg.assistant{background:#211b2c;border:1px solid #2f2740}
+.hc-tag{display:block;color:#a78bfa;font-size:9px;letter-spacing:.08em;font-weight:700;margin-bottom:3px}
+.howstage.run .hc-msg.customer{animation:hcIn .5s ease 3.4s forwards}
+.howstage.run .hc-msg.assistant{animation:hcIn .5s ease 6.6s forwards}
+@keyframes hcIn{to{opacity:1;transform:translateY(0)}}
+.how-steps{display:flex;justify-content:space-between;border-top:1px solid #241f2c;padding-top:10px}
+.hs{font-size:10px;letter-spacing:.05em;color:#565062;font-weight:700;transition:color .3s ease,text-shadow .3s ease}
+.hs.active{color:#c084fc;text-shadow:0 0 12px rgba(192,132,252,.7)}
 </style>
 </head>
 <body>
+<div id="bgfx">
+<div class="grid"></div>
+<div class="glow g1"></div><div class="glow g2"></div><div class="glow g3"></div>
+<div class="spark" style="top:18%;left:12%;animation-delay:0s"></div>
+<div class="spark" style="top:64%;left:22%;animation-delay:.8s"></div>
+<div class="spark" style="top:30%;left:78%;animation-delay:1.6s"></div>
+<div class="spark" style="top:75%;left:68%;animation-delay:.4s"></div>
+<div class="spark" style="top:48%;left:48%;animation-delay:2.2s"></div>
+<div class="spark" style="top:12%;left:55%;animation-delay:1.1s"></div>
+</div>
 <div id="stage">
 
-<div class="pinlabel" id="showcaseLabel"><h1>Multiple Chatbot Designs</h1><p>10 distinct mobile chatbot UI concepts</p></div>
-<div class="pinlabel" id="integrationLabel"><h1>Built to live inside your website</h1></div>
+<div class="sidelabel left" id="showcaseLabelLeft"><h1>One AI. Ten interfaces.</h1><p>Every design below runs on the same custom-built chatbot.</p></div>
+<div class="sidelabel right" id="showcaseLabelRight"><h1>Matched to your brand.</h1><p>Colors, tone, and layout — built around your business, not ours.</p></div>
+<div class="pinlabel" id="integrationLabel"><h1>Built to live inside your website.</h1><p>The same chatbot, placed exactly where your customers are already looking.</p></div>
+<div class="sidelabel left" id="integrationLabelLeft"><h1>Same chatbot. Every website.</h1><p>One assistant, embedded anywhere your customers already are.</p></div>
+<div class="sidelabel right" id="integrationLabelRight"><h1>Drop it in, done.</h1><p>A few lines of code and it's live — no rebuild required.</p></div>
 
-<!-- Scene 0: intro kinetic -->
-<div class="scene" id="s0"><div class="kinetic">Generic AI doesn't know your business.<br>Yours will.<div class="glowbar"></div></div></div>
+<!-- Scene 0: HOOK / PROBLEM -->
+<div class="scene" id="s0">
+<div class="hookcards">
+<div class="hcard" style="--d:0s"><span class="hcard-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg></span><div><b>Returns policy</b><small>PDF · Company knowledge</small></div></div>
+<div class="hcard" style="--d:.15s"><span class="hcard-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg></span><div><b>Product catalog</b><small>CSV · Company knowledge</small></div></div>
+<div class="hcard" style="--d:.3s"><span class="hcard-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13v-1a8 8 0 0 1 16 0v1"/><path d="M4 13h2a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H4z"/><path d="M20 13h-2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h2z"/><path d="M20 19v1a2 2 0 0 1-2 2h-3"/></svg></span><div><b>Support manual</b><small>DOCX · Company knowledge</small></div></div>
+<div class="hcard" style="--d:.45s"><span class="hcard-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span><div><b>Company FAQs</b><small>WEB · Company knowledge</small></div></div>
+<div class="hcard" style="--d:.6s"><span class="hcard-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg></span><div><b>Delivery guide</b><small>DOCX · Company knowledge</small></div></div>
+</div>
+<div class="storytext">
+<div class="lead">Your business already has the answers.</div>
+<div class="sub">They're sitting in your FAQs, policies, manuals, and product pages — but customers and employees still have to search for them, or ask you directly.</div>
+<div class="glowbar"></div></div></div>
+
+<!-- Scene 1: WHY IT MATTERS -->
+<div class="scene"><div class="storytext">
+<div class="lead">Repetitive questions cost you time.</div>
+<div class="sub">Every question your team answers twice is time not spent growing the business. And knowledge that's hard to find might as well not exist.</div>
+<div class="glowbar"></div></div></div>
+
+<!-- Scene 2: SOLUTION / PRODUCT INTRO -->
+<div class="scene" id="solutionScene"><div class="storytext">
+<div class="solution-badge"><span class="ping"></span><span class="ping p2"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4M9 4h6"/><circle cx="9" cy="14" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="14" r="1.2" fill="currentColor" stroke="none"/><path d="M9 17.5h6"/></svg></div>
+<div class="lead">Meet your custom AI chatbot.</div>
+<div class="sub">It reads your own business knowledge and answers questions instantly — trained on your content, built around your brand.</div>
+<div class="glowbar"></div></div></div>
 
 <!-- Scenes 2–11: 10 phone designs -->
 <div class="scene"><div class="shell"><div class="screen d1"><div class="notch"></div>
@@ -266,9 +427,9 @@ html,body{height:100%;background:#0a0a0a;overflow:hidden;font-family:-apple-syst
 <div class="stbar"><span>9:41</span><span class="icons"><span class="bars"><i></i><i></i><i></i><i></i></span><span class="bat"><i></i></span></span></div>
 <div class="hd4">←<b>Travel</b><span>⋮</span></div>
 <div class="msgs4">
-<div class="row4"><div class="av4"></div><div class="bub4 bot">Hi, can you suggest a good weekend trip near the city?</div></div>
+<div class="row4"><div class="av4"></div><div class="bub4 bot tw" data-text="Hi, can you suggest a good weekend trip near the city?"></div></div>
 <div class="row4"><div class="av4"></div><div class="voice"><span>▶</span><span class="wave4"><i style="height:6px"></i><i style="height:12px"></i><i style="height:8px"></i><i style="height:14px"></i><i style="height:5px"></i></span><span>0:42</span></div></div>
-<div class="row4 me"><div class="bub4 me tw" data-text="Yes, please"></div></div>
+<div class="row4 me"><div class="bub4 me reply-after">Yes, please</div></div>
 </div>
 <div class="inrow4"><div class="infield4">Your message...</div><div class="mic4">●</div></div>
 <div class="homebar" style="background:rgba(0,0,0,.25)"></div>
@@ -278,8 +439,8 @@ html,body{height:100%;background:#0a0a0a;overflow:hidden;font-family:-apple-syst
 <div class="stbar"><span>9:41</span><span class="icons"><span class="bars"><i></i><i></i><i></i><i></i></span><span class="bat"><i></i></span></span></div>
 <div class="hd5">NEW CHAT</div>
 <div class="msgs5">
-<div class="row5"><div class="bub5me tw" data-text="How can I be better at studies?"></div></div>
-<div class="bub5bot">3 tips to improve studying:<br>1. Set clear goals<br>2. Build a study schedule<br>3. Practice active recall</div>
+<div class="row5"><div class="bub5me">How can I be better at studies?</div></div>
+<div class="bub5bot tw" data-text="Here are 3 ways to study smarter: set clear goals, build a schedule, and practice active recall."></div>
 <div class="sugg"><b>Here are ways I can assist</b><div>Smart study routine</div><div>Math solving assistant</div><div>Writing coach</div></div>
 </div>
 <div class="inrow5"><div class="infield5">What is on your mind?</div><div class="send5">↑</div></div>
@@ -309,8 +470,8 @@ html,body{height:100%;background:#0a0a0a;overflow:hidden;font-family:-apple-syst
 <div class="hd8">Wealth Assistant</div>
 <div class="msgs8">
 <div class="card8"><span>Portfolio value</span><b>$48,210.32</b></div>
-<div class="bub8bot">Your portfolio is up 3.2% this month, led by tech holdings.</div>
-<div class="bub8me tw" data-text="Should I rebalance?"></div>
+<div class="bub8bot tw" data-text="Your portfolio is up 3.2% this month, led by tech holdings."></div>
+<div class="bub8me reply-after">Should I rebalance?</div>
 </div>
 <div class="inrow8"><div class="infield8">Ask about your portfolio</div><div class="send8">↑</div></div>
 <div class="homebar"></div>
@@ -321,8 +482,8 @@ html,body{height:100%;background:#0a0a0a;overflow:hidden;font-family:-apple-syst
 <div class="hd9"><b>How are you feeling?</b></div>
 <div class="moods"><div class="mood on">Calm</div><div class="mood">Anxious</div><div class="mood">Tired</div></div>
 <div class="msgs9">
-<div class="bub9bot">Thanks for sharing. Want to try a short breathing exercise?</div>
-<div class="bub9me tw" data-text="Yes, let's do it"></div>
+<div class="bub9bot tw" data-text="Thanks for sharing. Want to try a short breathing exercise?"></div>
+<div class="bub9me reply-after">Yes, let's do it</div>
 </div>
 <div class="inrow9"><div class="infield9">Tell me more...</div><div class="send9">↑</div></div>
 <div class="homebar" style="background:rgba(0,0,0,.2)"></div>
@@ -332,9 +493,9 @@ html,body{height:100%;background:#0a0a0a;overflow:hidden;font-family:-apple-syst
 <div class="stbar"><span>9:41</span><span class="icons"><span class="bars"><i></i><i></i><i></i><i></i></span><span class="bat"><i></i></span></span></div>
 <div class="hd10">ShopBot</div>
 <div class="msgs10">
-<div class="bub10bot">Here's a great pick under your budget:</div>
+<div class="bub10bot tw" data-text="Here's a great pick under your budget:"></div>
 <div class="pcard10"><div class="thumb10"></div><div><b>Trail Runner X</b><span>$74.99</span></div></div>
-<div class="bub10me tw" data-text="Add it to my cart"></div>
+<div class="bub10me reply-after">Add it to my cart</div>
 </div>
 <div class="inrow10"><div class="infield10">Search products...</div><div class="send10">↑</div></div>
 <div class="homebar" style="background:rgba(0,0,0,.2)"></div>
@@ -344,50 +505,88 @@ html,body{height:100%;background:#0a0a0a;overflow:hidden;font-family:-apple-syst
 <div class="scene"><div class="website" style="background:#0d0d12;border:1px solid #1c1c24">
 <div class="nav" style="color:#fff"><div class="logo">Nimbus Analytics</div><div class="navlinks"><span>Product</span><span>Pricing</span><span>Docs</span></div></div>
 <div class="hero" style="color:#fff"><h3>Understand your data,<br>instantly.</h3><p style="opacity:.65">Real-time dashboards for modern teams.</p><div class="btn" style="background:#c084fc;color:#0c0714">Start free trial</div></div>
-<div class="widget" style="background:#0c0714"><div class="whd" style="background:#17101f;color:#fff">Nimbus Assistant</div><div class="wbody"><div class="wbot" style="background:#211a2b;color:#e9e2f5">Hi! Need help with your dashboard?</div><div class="wme" style="background:#c084fc;color:#0c0714">Show me last week's traffic</div></div><div class="winput" style="background:#17101f;color:#7c7186">Ask a question…</div></div>
+<div class="widget" style="background:#0c0714"><div class="wtoggle-icon" style="background:#c084fc;color:#0c0714">💬</div><div class="whd" style="background:#17101f;color:#fff">Nimbus Assistant</div><div class="wbody"><div class="wbot tw" data-text="Hi! Need help with your dashboard?" style="background:#211a2b;color:#e9e2f5"></div><div class="wme reply-after" style="background:#c084fc;color:#0c0714">Show me last week's traffic</div></div><div class="winput" style="background:#17101f;color:#7c7186">Ask a question…</div></div>
 </div></div>
 
 <div class="scene"><div class="website" style="background:#12100f;border:1px solid #232019">
 <div class="nav" style="color:#f2efe9"><div class="logo">Ledger&nbsp;Works</div><div class="navlinks"><span>Features</span><span>Templates</span><span>Team</span></div></div>
 <div class="hero" style="color:#f2efe9"><h3>Project management<br>that keeps up.</h3><p style="opacity:.6">Plan, track, and ship with your team.</p><div class="btn" style="background:#d9a441;color:#1a1508">Get started</div></div>
-<div class="widget" style="background:#1c1913"><div class="whd" style="background:#241f16;color:#f2efe9">Workspace Bot</div><div class="wbody"><div class="wbot" style="background:#241f16;color:#e7e2d6">What would you like to plan today?</div><div class="wme" style="background:#d9a441;color:#1a1508">Draft this week's sprint</div></div><div class="winput" style="background:#241f16;color:#8c8672">Type a message…</div></div>
+<div class="widget" style="background:#1c1913"><div class="wtoggle-icon" style="background:#d9a441;color:#1a1508">💬</div><div class="whd" style="background:#241f16;color:#f2efe9">Workspace Bot</div><div class="wbody"><div class="wbot tw" data-text="What would you like to plan today?" style="background:#241f16;color:#e7e2d6"></div><div class="wme reply-after" style="background:#d9a441;color:#1a1508">Draft this week's sprint</div></div><div class="winput" style="background:#241f16;color:#8c8672">Type a message…</div></div>
 </div></div>
 
 <div class="scene"><div class="website" style="background:#1a0b1f;border:1px solid #2c1633">
 <div class="nav" style="color:#fff"><div class="logo">Bloom&nbsp;Studio</div><div class="navlinks"><span>Work</span><span>Services</span><span>Contact</span></div></div>
 <div class="hero" style="color:#fff"><h3>Design that moves<br>your brand forward.</h3><p style="opacity:.75">A creative studio for ambitious teams.</p><div class="btn" style="background:#fff;color:#1a0b1f">See our work</div></div>
-<div class="widget" style="background:#26102b"><div class="whd" style="background:#3a1740;color:#fff">Bloom Concierge</div><div class="wbody"><div class="wbot" style="background:#3a1740;color:#fbe6f7">Looking to start a project?</div><div class="wme" style="background:#e879c9;color:#2a0e2e">Yes, tell me more</div></div><div class="winput" style="background:#3a1740;color:#c79ec3">Message us…</div></div>
+<div class="widget" style="background:#26102b"><div class="wtoggle-icon" style="background:#e879c9;color:#2a0e2e">💬</div><div class="whd" style="background:#3a1740;color:#fff">Bloom Concierge</div><div class="wbody"><div class="wbot tw" data-text="Looking to start a project?" style="background:#3a1740;color:#fbe6f7"></div><div class="wme reply-after" style="background:#e879c9;color:#2a0e2e">Yes, tell me more</div></div><div class="winput" style="background:#3a1740;color:#c79ec3">Message us…</div></div>
 </div></div>
 
 <div class="scene"><div class="website" style="background:#0b0e14;border:1px solid #1a1f29">
 <div class="nav" style="color:#eef1f6"><div class="logo">Meridian&nbsp;Capital</div><div class="navlinks"><span>Invest</span><span>Insights</span><span>Login</span></div></div>
 <div class="hero" style="color:#eef1f6"><h3>Wealth management,<br>simplified.</h3><p style="opacity:.6">Personalized investing powered by AI.</p><div class="btn" style="background:#e9c46a;color:#241c05">Open an account</div></div>
-<div class="widget" style="background:#141a24"><div class="whd" style="background:#1b2230;color:#eef1f6">Wealth Assistant</div><div class="wbody"><div class="wbot" style="background:#1b2230;color:#d7dce4">Your portfolio is up 3.2% today.</div><div class="wme" style="background:#e9c46a;color:#241c05">Should I rebalance?</div></div><div class="winput" style="background:#1b2230;color:#697184">Ask about your portfolio…</div></div>
+<div class="widget" style="background:#141a24"><div class="wtoggle-icon" style="background:#e9c46a;color:#241c05">💬</div><div class="whd" style="background:#1b2230;color:#eef1f6">Wealth Assistant</div><div class="wbody"><div class="wbot tw" data-text="Your portfolio is up 3.2% today." style="background:#1b2230;color:#d7dce4"></div><div class="wme reply-after" style="background:#e9c46a;color:#241c05">Should I rebalance?</div></div><div class="winput" style="background:#1b2230;color:#697184">Ask about your portfolio…</div></div>
 </div></div>
 
 <div class="scene"><div class="website" style="background:#f3faf6;border:1px solid #dcefe4">
 <div class="nav" style="color:#1f3d31"><div class="logo">Willow&nbsp;Health</div><div class="navlinks"><span>Care</span><span>Providers</span><span>Book</span></div></div>
 <div class="hero" style="color:#1f3d31"><h3>Healthcare that<br>listens to you.</h3><p style="opacity:.65">Book visits and get support, anytime.</p><div class="btn" style="background:#2f7d5c;color:#fff">Book a visit</div></div>
-<div class="widget" style="background:#fff;border:1px solid #dcefe4"><div class="whd" style="background:#eaf6f0;color:#1f3d31">Willow Assistant</div><div class="wbody"><div class="wbot" style="background:#eaf6f0;color:#274438">How are you feeling today?</div><div class="wme" style="background:#2f7d5c;color:#fff">A bit anxious</div></div><div class="winput" style="background:#eaf6f0;color:#8fae9e">Tell me more…</div></div>
+<div class="widget" style="background:#fff;border:1px solid #dcefe4"><div class="wtoggle-icon" style="background:#2f7d5c;color:#fff">💬</div><div class="whd" style="background:#eaf6f0;color:#1f3d31">Willow Assistant</div><div class="wbody"><div class="wbot tw" data-text="How are you feeling today?" style="background:#eaf6f0;color:#274438"></div><div class="wme reply-after" style="background:#2f7d5c;color:#fff">A bit anxious</div></div><div class="winput" style="background:#eaf6f0;color:#8fae9e">Tell me more…</div></div>
 </div></div>
 
-<!-- Scene 18: RAG visualization -->
-<div class="scene" id="ragScene"><div class="ragstage" id="ragStage">
-<div class="ragcap">COMPANY KNOWLEDGE BASE</div>
-<div class="doc" style="--sx:-260px;--sy:-140px;animation-delay:0s">PDF</div>
-<div class="doc" style="--sx:250px;--sy:-160px;animation-delay:.3s">DOCX</div>
-<div class="doc" style="--sx:-280px;--sy:120px;animation-delay:.6s">FAQ</div>
-<div class="doc" style="--sx:260px;--sy:140px;animation-delay:.9s">CSV</div>
-<div class="doc" style="--sx:0px;--sy:-190px;animation-delay:1.2s">POLICY</div>
-<div class="doc" style="--sx:0px;--sy:190px;animation-delay:1.5s">MANUAL</div>
-<div class="ragnode">AI</div>
-<div class="raganswer">"Refunds are accepted within 30 days of purchase, per your return policy."</div>
+<!-- Scene: How it works -->
+<div class="scene" id="ragScene"><div class="howstage" id="ragStage">
+<div class="how-head"><span class="how-eyebrow">HOW IT WORKS</span><h2>Your knowledge powers every answer.</h2></div>
+<div class="how-body">
+<div class="how-docs">
+<div class="hdoc" style="--d:0s"><span class="hdoc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg></span><div><b>Returns policy</b><small>PDF · Company knowledge</small></div></div>
+<div class="hdoc" style="--d:.15s"><span class="hdoc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg></span><div><b>Product catalog</b><small>CSV · Company knowledge</small></div></div>
+<div class="hdoc" style="--d:.3s"><span class="hdoc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13v-1a8 8 0 0 1 16 0v1"/><path d="M4 13h2a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H4z"/><path d="M20 13h-2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h2z"/><path d="M20 19v1a2 2 0 0 1-2 2h-3"/></svg></span><div><b>Support manual</b><small>DOCX · Company knowledge</small></div></div>
+<div class="hdoc" style="--d:.45s"><span class="hdoc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span><div><b>Company FAQs</b><small>WEB · Company knowledge</small></div></div>
+<div class="hdoc" style="--d:.6s"><span class="hdoc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg></span><div><b>Delivery guide</b><small>DOCX · Company knowledge</small></div></div>
+</div>
+<svg class="how-links" viewBox="0 0 1040 460" preserveAspectRatio="none">
+<path d="M232,60 C330,60 330,230 470,230" style="animation-delay:0s"/>
+<path d="M232,130 C330,130 330,230 470,230" style="animation-delay:.1s"/>
+<path d="M232,200 C330,200 330,230 470,230" style="animation-delay:.2s"/>
+<path d="M232,270 C330,270 330,230 470,230" style="animation-delay:.3s"/>
+<path d="M232,340 C330,340 330,230 470,230" style="animation-delay:.4s"/>
+<path d="M610,230 L742,230"/>
+<circle class="particle" r="3"><animateMotion dur="2.4s" repeatCount="indefinite" path="M232,60 C330,60 330,230 470,230"/></circle>
+<circle class="particle" r="3"><animateMotion dur="2.4s" begin="0.6s" repeatCount="indefinite" path="M232,200 C330,200 330,230 470,230"/></circle>
+<circle class="particle" r="3"><animateMotion dur="2.4s" begin="1.2s" repeatCount="indefinite" path="M232,340 C330,340 330,230 470,230"/></circle>
+<circle class="particle" r="3"><animateMotion dur="1.4s" begin=".4s" repeatCount="indefinite" path="M610,230 L742,230"/></circle>
+</svg>
+<div class="how-knowledge-wrap">
+<svg class="atom-rings" viewBox="0 0 220 220">
+<g class="ring" transform="rotate(-58 110 110)"><ellipse cx="110" cy="110" rx="100" ry="38"/><circle class="atom-dot" r="3.2"><animateMotion dur="5.5s" repeatCount="indefinite" path="M110,72 A100,38 0 1,1 110,148 A100,38 0 1,1 110,72"/></circle></g>
+<g class="ring" transform="rotate(0 110 110)"><ellipse cx="110" cy="110" rx="100" ry="38"/><circle class="atom-dot" r="3.2"><animateMotion dur="7s" begin="1s" repeatCount="indefinite" path="M110,72 A100,38 0 1,1 110,148 A100,38 0 1,1 110,72"/></circle></g>
+<g class="ring" transform="rotate(58 110 110)"><ellipse cx="110" cy="110" rx="100" ry="38"/><circle class="atom-dot" r="3.2"><animateMotion dur="6.4s" begin="2s" repeatCount="indefinite" path="M110,72 A100,38 0 1,1 110,148 A100,38 0 1,1 110,72"/></circle></g>
+</svg>
+<div class="how-knowledge"><span class="hk-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a5 5 0 0 0-3 9 4 4 0 0 0-2 3.5V17a2 2 0 0 0 2 2h.5"/><path d="M12 3a5 5 0 0 1 3 9 4 4 0 0 1 2 3.5V17a2 2 0 0 1-2 2h-.5"/><path d="M9.5 19h5M10.5 21h3"/><circle cx="12" cy="8" r="1.4" fill="currentColor" stroke="none"/></svg></span>AI</div>
+</div>
+<div class="how-chat">
+<div class="hc-head"><span class="hc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4M9 4h6"/><circle cx="9" cy="14" r="1.1" fill="currentColor" stroke="none"/><circle cx="15" cy="14" r="1.1" fill="currentColor" stroke="none"/><path d="M9 17.5h6"/></svg></span><div><b>Support Assistant</b><small>Connected to company knowledge</small></div></div>
+<div class="hc-msg customer"><span class="hc-tag">CUSTOMER</span>What's your return policy?</div>
+<div class="hc-msg assistant"><span class="hc-tag">ASSISTANT</span>We accept returns within 14 days of delivery, as long as the item is unused and in its original packaging.</div>
+</div>
+</div>
+<div class="how-steps" id="ragStatus">
+<span class="hs">01 Connect</span><span class="hs">02 Organize</span><span class="hs">03 Customer asks</span><span class="hs">04 Retrieve</span><span class="hs">05 Answer</span>
+</div>
 </div></div>
 
-<!-- Scenes 19–21: closing kinetic lines -->
-<div class="scene"><div class="kinetic small">Not another generic chatbot.<div class="glowbar"></div></div></div>
-<div class="scene"><div class="kinetic small">Trained entirely on your knowledge.<div class="glowbar"></div></div></div>
-<div class="scene"><div class="kinetic">This is what AI looks like<br>when it's actually yours.<div class="glowbar"></div></div></div>
+<!-- Scene: BENEFITS -->
+<div class="scene"><div class="storytext benefitswrap">
+<div class="lead">The real win isn't the chatbot.</div>
+<div class="glowbar" style="margin-left:0"></div>
+<ul class="benefits">
+<li>Customers get instant, accurate answers — any time of day.</li>
+<li>Your team spends less time answering the same questions over and over.</li>
+<li>Your knowledge finally works for you, 24/7.</li>
+</ul>
+</div></div>
+
+<!-- Scene: CTA -->
+<div class="scene"><div class="title-wrap"><h1>Want a chatbot built<br>around your business?</h1><p>I design and build custom AI chatbots that answer from your own knowledge — matched to your brand, ready for your website.</p><div class="ctapill">Message me and let's build one for you<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div></div></div>
 
 </div>
 <button id="playBtn" aria-label="Play">▶</button>
@@ -401,50 +600,71 @@ html,body{height:100%;background:#0a0a0a;overflow:hidden;font-family:-apple-syst
 <script>
 const scenes=[...document.querySelectorAll('.scene')];
 const ragStage=document.getElementById('ragStage');
-const showcaseLabel=document.getElementById('showcaseLabel');
+const ragStatus=document.getElementById('ragStatus');
+const showcaseLabelL=document.getElementById('showcaseLabelLeft');
+const showcaseLabelR=document.getElementById('showcaseLabelRight');
 const integrationLabel=document.getElementById('integrationLabel');
-// order: [intro, 10 phones (unchanged timing), 5 websites (unchanged timing), rag (slowed), 2 closing lines (slowed), final line (slowed)]
-const introDur=3400;
-const phoneDurations=[1300,1250,1250,1400,1250,1250,1300,1250,1250,1400];
-const websiteDurations=[2000,2000,2000,2000,2000];
-const ragDur=6200;
-const closingDurations=[1900,1900];
-const finalDur=2400;
-const durations=[introDur,...phoneDurations,...websiteDurations,ragDur,...closingDurations,finalDur];
-const sum=a=>a.reduce((x,y)=>x+y,0);
-const phoneStart=introDur;
-const phoneTotal=sum(phoneDurations);
-const websiteStart=phoneStart+phoneTotal;
-const websiteTotal=sum(websiteDurations);
-const ragStart=websiteStart+websiteTotal;
+const integrationLabelL=document.getElementById('integrationLabelLeft');
+const integrationLabelR=document.getElementById('integrationLabelRight');
+// order: [hook, why, solution, 10 phones, 5 websites, rag, benefits, cta]
+const hookDur=3000;
+const whyDur=3000;
+const solutionDur=2600;
+const phoneDurations=[1700,1600,1600,2200,1600,1600,1700,2200,2200,2000];
+const websiteDurations=[2100,2100,2100,2100,2100];
+const ragDur=10000;
+const benefitsDur=3800;
+const ctaDur=3800;
+const durations=[hookDur,whyDur,solutionDur,...phoneDurations,...websiteDurations,ragDur,benefitsDur,ctaDur];
 
 function typeInto(el,speed){
   const text=el.dataset.text||'';el.textContent='';let i=0;
   const id=setInterval(()=>{el.textContent+=text[i];i++;if(i>=text.length)clearInterval(id);},speed);
 }
+function resetAnim(el){el.style.animation='none';void el.offsetWidth;el.style.animation='';}
+function runRagStatus(){
+  const hs=ragStatus.querySelectorAll('.hs');
+  hs.forEach(s=>s.classList.remove('active'));
+  const seg=ragDur/hs.length;
+  hs.forEach((s,i)=>setTimeout(()=>{hs.forEach(x=>x.classList.remove('active'));s.classList.add('active');},i*seg));
+}
 function showScene(i){
   scenes.forEach(s=>s.classList.remove('active'));
   const s=scenes[i];s.classList.add('active');
-  s.querySelectorAll('.tw').forEach(el=>typeInto(el,22));
-  if(s.id==='ragScene'){ragStage.classList.remove('run');void ragStage.offsetWidth;ragStage.classList.add('run');}
+  s.querySelectorAll('.reply-after').forEach(el=>el.classList.remove('show'));
+  let maxTypeMs=0;
+  s.querySelectorAll('.tw').forEach(el=>{
+    const spd=el.closest('.widget')?12:22;
+    typeInto(el,spd);
+    maxTypeMs=Math.max(maxTypeMs,(el.dataset.text||'').length*spd);
+  });
+  if(s.querySelector('.reply-after')){
+    setTimeout(()=>{ s.querySelectorAll('.reply-after').forEach(el=>el.classList.add('show')); },maxTypeMs+300);
+  }
+  s.querySelectorAll('.widget,.wtoggle-icon,.benefits li').forEach(resetAnim);
+  if(s.id==='ragScene'){ragStage.classList.remove('run');void ragStage.offsetWidth;ragStage.classList.add('run');runRagStatus();}
 }
 
 // build a flat sequence of steps: each shows a scene (and toggles labels) then holds for a duration
 const steps=[];
-steps.push({run:()=>showScene(0),dur:introDur});
+steps.push({run:()=>showScene(0),dur:hookDur});
+steps.push({run:()=>showScene(1),dur:whyDur});
+steps.push({run:()=>showScene(2),dur:solutionDur});
 phoneDurations.forEach((d,i)=>{
-  steps.push({run:()=>{ if(i===0) showcaseLabel.classList.add('show'); showScene(1+i); },dur:d});
+  steps.push({run:()=>{
+    showScene(3+i);
+    if(i===0){ showcaseLabelL.classList.add('show'); setTimeout(()=>showcaseLabelR.classList.add('show'),300); }
+  },dur:d});
 });
 websiteDurations.forEach((d,i)=>{
-  steps.push({run:()=>{ if(i===0){ showcaseLabel.classList.remove('show'); integrationLabel.classList.add('show'); } showScene(11+i); },dur:d});
+  steps.push({run:()=>{ if(i===0){ showcaseLabelL.classList.remove('show'); showcaseLabelR.classList.remove('show'); integrationLabel.classList.add('show'); integrationLabelL.classList.add('show'); integrationLabelR.classList.add('show'); } showScene(13+i); },dur:d});
 });
-steps.push({run:()=>{ integrationLabel.classList.remove('show'); showScene(16); },dur:ragDur});
-steps.push({run:()=>showScene(17),dur:closingDurations[0]});
-steps.push({run:()=>showScene(18),dur:closingDurations[1]});
-steps.push({run:()=>showScene(19),dur:finalDur});
+steps.push({run:()=>{ integrationLabel.classList.remove('show'); integrationLabelL.classList.remove('show'); integrationLabelR.classList.remove('show'); showScene(18); },dur:ragDur});
+steps.push({run:()=>showScene(19),dur:benefitsDur});
+steps.push({run:()=>showScene(20),dur:ctaDur});
 steps.push({run:()=>{
     scenes.forEach(s=>s.classList.remove('active'));
-    showcaseLabel.classList.remove('show');integrationLabel.classList.remove('show');
+    showcaseLabelL.classList.remove('show');showcaseLabelR.classList.remove('show');integrationLabel.classList.remove('show');integrationLabelL.classList.remove('show');integrationLabelR.classList.remove('show');
     const btn=document.getElementById('playBtn');btn.textContent='↻';btn.style.display='flex';
     document.getElementById('pauseHint').classList.remove('show');
     started=false;
