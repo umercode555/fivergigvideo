@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI Chatbots — Product Demo</title>
+<style>
+:root{color-scheme:dark;--pad-t:env(safe-area-inset-top,0px);--pad-b:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0a0a0a;overflow:hidden;font-family:-apple-system,Segoe UI,Roboto,sans-serif}
+#stage{position:relative;width:100%;height:100%;padding-top:var(--pad-t);padding-bottom:var(--pad-b);display:flex;align-items:center;justify-content:center}
+.scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;filter:blur(10px);transform:scale(.92);transition:opacity .75s cubic-bezier(.2,.7,.3,1),transform .75s cubic-bezier(.2,.7,.3,1),filter .75s ease;pointer-events:none}
+.scene.active{opacity:1;filter:blur(0);transform:scale(1);pointer-events:auto}
+#playBtn{position:fixed;top:calc(16px + var(--pad-t));right:16px;width:54px;height:54px;border-radius:50%;border:none;background:#fff;color:#111;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 6px rgba(192,132,252,.18),0 8px 24px rgba(0,0,0,.5);z-index:80}
+.pinlabel{position:fixed;top:calc(30px + var(--pad-t));left:0;right:0;text-align:center;color:#fff;z-index:40;opacity:0;transform:translateY(-10px);transition:opacity .7s ease,transform .7s ease;pointer-events:none}
+.pinlabel.show{opacity:1;transform:translateY(0)}
+.pinlabel h1{font-size:clamp(20px,3.4vw,30px);font-weight:700;letter-spacing:-.02em;text-shadow:0 0 40px rgba(192,132,252,.5)}
+.pinlabel p{margin-top:6px;font-size:12px;color:#8a8a8a}
+#speedPanel{position:fixed;bottom:calc(16px + var(--pad-b));left:16px;display:flex;gap:6px;z-index:80}
+#speedPanel button{background:rgba(255,255,255,.1);color:#ddd;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:6px 10px;font-size:11px;cursor:pointer}
+#speedPanel button.on{background:#c084fc;color:#1a0b1f;border-color:#c084fc;font-weight:700}
+#pauseHint{position:fixed;bottom:calc(16px + var(--pad-b));right:16px;color:#8a8a8a;font-size:11px;z-index:80;opacity:0;transition:opacity .3s ease}
+#pauseHint.show{opacity:1}
+
+/* kinetic text scenes */
+.kinetic{color:#fff;text-align:center;font-size:clamp(24px,5.2vw,46px);font-weight:700;letter-spacing:-.02em;line-height:1.28;padding:0 34px;text-shadow:0 0 50px rgba(192,132,252,.55)}
+.kinetic.small{font-size:clamp(17px,3.2vw,26px);font-weight:600}
+.glowbar{width:64px;height:3px;background:linear-gradient(90deg,transparent,#c084fc,transparent);margin:20px auto 0;border-radius:2px}
+.title-wrap{text-align:center;color:#fff}
+.title-wrap h1{font-size:clamp(28px,6vw,54px);font-weight:700;letter-spacing:-.02em;text-shadow:0 0 50px rgba(192,132,252,.5)}
+.title-wrap p{margin-top:10px;font-size:15px;color:#8a8a8a}
+
+/* ===== phone shell (unchanged) ===== */
+.shell{width:296px;height:606px;background:#050505;border-radius:46px;padding:11px;box-shadow:0 40px 80px rgba(0,0,0,.6),0 0 0 2px #1a1a1a}
+.screen{position:relative;width:100%;height:100%;border-radius:36px;overflow:hidden;display:flex;flex-direction:column}
+.notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:84px;height:20px;background:#050505;border-radius:12px;z-index:6}
+.homebar{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);width:110px;height:4px;border-radius:3px;z-index:6}
+.stbar{display:flex;justify-content:space-between;align-items:center;padding:16px 22px 4px;font-size:13px;font-weight:600;flex-shrink:0}
+.stbar .icons{display:flex;align-items:center;gap:4px}
+.bat{width:20px;height:10px;border:1.3px solid currentColor;border-radius:2.5px;position:relative;opacity:.9}
+.bat::after{content:'';position:absolute;right:-3px;top:2.5px;width:1.5px;height:5px;background:currentColor}
+.bat i{display:block;height:100%;width:80%;background:currentColor;border-radius:1px}
+.bars{display:flex;align-items:flex-end;gap:1.5px;height:9px}
+.bars i{width:2.6px;background:currentColor;border-radius:1px}
+.bars i:nth-child(1){height:35%}.bars i:nth-child(2){height:60%}.bars i:nth-child(3){height:80%}.bars i:nth-child(4){height:100%}
+
+/* 1 Purple gradient hero */
+.d1{background:#0c0714}
+.d1 .stbar{color:#fff}
+.d1 .homebar{background:rgba(255,255,255,.5)}
+.d1 .body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;padding:24px}
+.d1 .orb{width:190px;height:190px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffd166,#ef476f 45%,#7b2ff7 80%);filter:blur(2px);box-shadow:0 0 90px rgba(239,71,111,.5)}
+.d1 h2{color:#fff;font-size:23px;font-weight:600;margin-top:26px;text-align:center;line-height:1.3}
+.d1 h2 b{color:#c084fc}
+.d1 p{color:#8b8595;font-size:12.5px;margin-top:10px;text-align:center}
+.d1 .cta{margin:0 22px 28px;background:#fff;color:#0c0714;text-align:center;padding:15px;border-radius:16px;font-size:14px;font-weight:600}
+
+/* 2 Dark green home list */
+.d2{background:linear-gradient(180deg,#0e2a22,#081714)}
+.d2 .stbar{color:#e9f5f0}
+.d2 .homebar{background:rgba(255,255,255,.4)}
+.d2 .hd2{padding:6px 22px 4px}
+.d2 .ic-round{width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:#dff5ec;font-size:14px}
+.d2 h2{color:#fff;font-size:24px;font-weight:800;margin-top:20px;padding:0 22px}
+.d2 p{color:#8fb3a6;font-size:12px;padding:2px 22px 16px}
+.d2 .cat{margin:0 22px 10px;background:rgba(255,255,255,.06);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px}
+.d2 .cat .dot{width:34px;height:34px;border-radius:10px;background:#173a30;display:flex;align-items:center;justify-content:center;color:#5eead4;font-size:14px;font-weight:700}
+.d2 .cat b{color:#eafaf3;font-size:12.5px;display:block}
+.d2 .cat span{color:#7fa294;font-size:10.5px}
+.d2 .inrow{margin-top:auto;display:flex;gap:8px;padding:14px 18px 26px}
+.d2 .infield{flex:1;background:rgba(255,255,255,.07);border-radius:20px;padding:11px 16px;color:#9fc2b4;font-size:12px}
+.d2 .send{width:38px;height:38px;border-radius:50%;background:#2dd4a7;display:flex;align-items:center;justify-content:center;color:#04140f;font-weight:700}
+
+/* 3 Teal gradient listening */
+.d3{background:linear-gradient(200deg,#0891b2,#0f172a 65%)}
+.d3 .stbar{color:#fff}
+.d3 .homebar{background:rgba(255,255,255,.5)}
+.d3 .body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px}
+.d3 .glyph{width:64px;height:64px;border-radius:20px;background:linear-gradient(135deg,#7dd3fc,#38bdf8);display:flex;align-items:center;justify-content:center;color:#04202c;font-size:26px;font-weight:800}
+.d3 .lbl{color:#bae6fd;font-size:12px;letter-spacing:.06em}
+.d3 h2{color:#fff;font-size:19px;font-weight:600;text-align:center;line-height:1.4;padding:0 30px}
+.d3 .row3{display:flex;gap:10px;padding:0 18px 26px;align-items:center}
+.d3 .sqbtn{width:44px;height:44px;border-radius:14px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px}
+.d3 .sendpill{flex:1;background:#22d3ee;color:#04202c;text-align:center;padding:13px;border-radius:14px;font-weight:700;font-size:13px}
+
+/* 4 Light travel chat */
+.d4{background:#faf7f4}
+.d4 .stbar{color:#26201b}
+.d4 .homebar{background:rgba(0,0,0,.25)}
+.d4 .hd4{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid #efe8e0}
+.d4 .hd4 b{color:#26201b;font-size:14px}
+.d4 .msgs4{flex:1;padding:14px 16px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+.d4 .row4{display:flex;gap:8px;max-width:82%}
+.d4 .row4.me{align-self:flex-end;flex-direction:row-reverse}
+.d4 .av4{width:24px;height:24px;border-radius:50%;background:#e8b4a0;flex-shrink:0}
+.d4 .bub4{padding:10px 13px;border-radius:14px;font-size:12px;line-height:1.4;min-height:1.4em}
+.d4 .bub4.bot{background:#fff;color:#3a3129;border:1px solid #efe8e0}
+.d4 .bub4.me{background:#26201b;color:#fff}
+.d4 .voice{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #efe8e0;border-radius:14px;padding:9px 12px;font-size:11px;color:#26201b}
+.d4 .wave4{display:flex;gap:2px;align-items:center}
+.d4 .wave4 i{width:2px;background:#c7442a;border-radius:1px}
+.d4 .inrow4{display:flex;gap:8px;padding:10px 16px 24px;align-items:center}
+.d4 .infield4{flex:1;background:#fff;border:1px solid #efe8e0;border-radius:20px;padding:10px 15px;color:#a49a8d;font-size:12px}
+.d4 .mic4{width:36px;height:36px;border-radius:50%;background:#c7442a;color:#fff;display:flex;align-items:center;justify-content:center}
+
+/* 5 Dark chat suggestions */
+.d5{background:#12100f}
+.d5 .stbar{color:#f2efe9}
+.d5 .homebar{background:rgba(255,255,255,.4)}
+.d5 .hd5{padding:8px 20px;color:#f2efe9;font-size:13px;font-weight:700;letter-spacing:.06em;border-bottom:1px solid #232019}
+.d5 .msgs5{flex:1;padding:14px 16px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+.d5 .row5{display:flex;justify-content:flex-end}
+.d5 .bub5me{background:#d9a441;color:#1a1508;padding:9px 13px;border-radius:14px 14px 3px 14px;font-size:12px;max-width:78%;min-height:1.4em}
+.d5 .bub5bot{background:#1c1913;color:#e7e2d6;padding:11px 13px;border-radius:3px 14px 14px 14px;font-size:11.5px;line-height:1.6;max-width:85%}
+.d5 .sugg{background:#1c1913;border:1px solid #2b271d;border-radius:12px;padding:10px 12px;font-size:11px;color:#cfc8b6}
+.d5 .sugg div{padding:5px 0;color:#a8a08c}
+.d5 .inrow5{display:flex;gap:8px;padding:10px 16px 24px}
+.d5 .infield5{flex:1;background:#1c1913;border:1px solid #2b271d;border-radius:18px;padding:10px 15px;color:#8c8672;font-size:12px}
+.d5 .send5{width:36px;height:36px;border-radius:50%;background:#d9a441;color:#1a1508;display:flex;align-items:center;justify-content:center;font-weight:700}
+
+/* 6 Pink gradient bold hero */
+.d6{background:#1a0b1f;position:relative;overflow:hidden}
+.d6 .blob{position:absolute;border-radius:50%}
+.d6 .b1{width:220px;height:220px;background:radial-gradient(circle,#ff8fd6,#c026d3 70%);top:-40px;right:-60px;opacity:.9}
+.d6 .b2{width:180px;height:180px;background:radial-gradient(circle,#ffd6f0,#f472b6 70%);top:60px;left:-50px;opacity:.7}
+.d6 .stbar{color:#fff;position:relative;z-index:2}
+.d6 .homebar{background:rgba(255,255,255,.5)}
+.d6 .body6{flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding:26px 22px;position:relative;z-index:2}
+.d6 h2{color:#fff;font-size:29px;font-weight:800;line-height:1.15;text-transform:uppercase}
+.d6 p{color:#f3d9ee;font-size:12px;margin-top:12px}
+.d6 .cta6{margin-top:20px;background:#fff;color:#1a0b1f;text-align:center;padding:15px;border-radius:16px;font-weight:700;font-size:14px}
+
+/* 7 Light grid home */
+.d7{background:#fff}
+.d7 .stbar{color:#1c1c1e}
+.d7 .homebar{background:rgba(0,0,0,.25)}
+.d7 .hd7{display:flex;align-items:center;gap:10px;padding:8px 20px}
+.d7 .av7{width:34px;height:34px;border-radius:50%;background:#d9c2f0}
+.d7 .hd7 b{font-size:13px;color:#1c1c1e}
+.d7 .hd7 span{font-size:10.5px;color:#8a8a8e;display:block}
+.d7 .promo{margin:8px 18px;background:linear-gradient(120deg,#f3e8ff,#fde2ff);border-radius:16px;padding:14px}
+.d7 .promo b{font-size:14px;color:#5b21b6}
+.d7 .promo p{font-size:10.5px;color:#7c5ba6;margin-top:4px}
+.d7 .grid7{display:flex;gap:8px;padding:12px 18px}
+.d7 .gcard{flex:1;background:#f7f5fa;border-radius:12px;padding:10px;text-align:center;font-size:10.5px;color:#4b3f5c}
+.d7 .gcard .ic7{width:30px;height:30px;border-radius:9px;background:#e9defa;margin:0 auto 6px}
+.d7 .hist{padding:8px 18px}
+.d7 .hist h4{font-size:10.5px;color:#a09aa8;letter-spacing:.05em;margin-bottom:8px}
+.d7 .hitem{display:flex;gap:10px;padding:8px 0;border-top:1px solid #f1eef5}
+.d7 .hitem .ic7b{width:26px;height:26px;border-radius:8px;background:#f1eef5;flex-shrink:0}
+.d7 .hitem b{font-size:11px;color:#2c2438;display:block}
+.d7 .hitem span{font-size:9.5px;color:#a09aa8}
+
+/* 8 Finance assistant */
+.d8{background:#0b0e14}
+.d8 .stbar{color:#eef1f6}
+.d8 .homebar{background:rgba(255,255,255,.4)}
+.d8 .hd8{padding:10px 20px;color:#eef1f6;font-size:13px;font-weight:700;border-bottom:1px solid #1a1f29}
+.d8 .msgs8{flex:1;padding:14px 16px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+.d8 .card8{background:#141a24;border:1px solid #232a37;border-radius:14px;padding:12px}
+.d8 .card8 span{color:#7c8698;font-size:10px}
+.d8 .card8 b{color:#e9c46a;font-size:19px;display:block;margin-top:2px}
+.d8 .bub8bot{background:#141a24;border:1px solid #232a37;color:#d7dce4;padding:10px 13px;border-radius:13px;font-size:11.5px;max-width:82%}
+.d8 .bub8me{align-self:flex-end;background:#e9c46a;color:#241c05;padding:9px 13px;border-radius:13px;font-size:12px;max-width:75%;min-height:1.4em}
+.d8 .inrow8{display:flex;gap:8px;padding:10px 16px 24px}
+.d8 .infield8{flex:1;background:#141a24;border:1px solid #232a37;border-radius:18px;padding:10px 15px;color:#697184;font-size:12px}
+.d8 .send8{width:36px;height:36px;border-radius:50%;background:#e9c46a;color:#241c05;display:flex;align-items:center;justify-content:center;font-weight:700}
+
+/* 9 Wellness assistant */
+.d9{background:#f3faf6}
+.d9 .stbar{color:#1f3d31}
+.d9 .homebar{background:rgba(0,0,0,.2)}
+.d9 .hd9{padding:14px 20px 4px}
+.d9 .hd9 b{color:#1f3d31;font-size:17px;font-weight:600}
+.d9 .moods{display:flex;gap:8px;padding:12px 18px}
+.d9 .mood{flex:1;text-align:center;background:#fff;border:1px solid #dcefe4;border-radius:12px;padding:10px 4px;font-size:10.5px;color:#3f6b57}
+.d9 .mood.on{background:#2f7d5c;color:#fff;border-color:#2f7d5c}
+.d9 .msgs9{flex:1;padding:8px 18px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+.d9 .bub9bot{background:#fff;border:1px solid #dcefe4;color:#274438;padding:10px 13px;border-radius:14px;font-size:11.5px;max-width:82%}
+.d9 .bub9me{align-self:flex-end;background:#2f7d5c;color:#fff;padding:9px 13px;border-radius:14px;font-size:12px;max-width:75%;min-height:1.4em}
+.d9 .inrow9{display:flex;gap:8px;padding:10px 16px 24px}
+.d9 .infield9{flex:1;background:#fff;border:1px solid #dcefe4;border-radius:18px;padding:10px 15px;color:#8fae9e;font-size:12px}
+.d9 .send9{width:36px;height:36px;border-radius:50%;background:#2f7d5c;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+
+/* 10 Shopping assistant */
+.d10{background:#fffaf3}
+.d10 .stbar{color:#3a2a15}
+.d10 .homebar{background:rgba(0,0,0,.2)}
+.d10 .hd10{padding:12px 20px;color:#3a2a15;font-size:14px;font-weight:700;border-bottom:1px solid #f1e4cf}
+.d10 .msgs10{flex:1;padding:12px 16px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+.d10 .bub10bot{background:#fff;border:1px solid #f1e4cf;color:#4a3a22;padding:10px 13px;border-radius:14px;font-size:11.5px;max-width:85%}
+.d10 .pcard10{display:flex;gap:10px;background:#fff;border:1px solid #f1e4cf;border-radius:14px;padding:9px;align-items:center}
+.d10 .thumb10{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#f5a623,#e8722c);flex-shrink:0}
+.d10 .pcard10 b{font-size:11.5px;color:#3a2a15;display:block}
+.d10 .pcard10 span{font-size:10.5px;color:#a3773f}
+.d10 .bub10me{align-self:flex-end;background:#3a2a15;color:#fff;padding:9px 13px;border-radius:14px;font-size:12px;max-width:75%;min-height:1.4em}
+.d10 .inrow10{display:flex;gap:8px;padding:10px 16px 24px}
+.d10 .infield10{flex:1;background:#fff;border:1px solid #f1e4cf;border-radius:18px;padding:10px 15px;color:#b0a186;font-size:12px}
+.d10 .send10{width:36px;height:36px;border-radius:50%;background:#e8722c;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+
+/* ===== website + widget scenes ===== */
+.website{width:640px;height:540px;border-radius:16px;overflow:hidden;position:relative;box-shadow:0 40px 90px rgba(0,0,0,.6)}
+.website .nav{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid rgba(255,255,255,.08)}
+.website .logo{font-weight:700;font-size:14px}
+.website .navlinks{display:flex;gap:18px;font-size:11px;opacity:.65}
+.website .hero{padding:44px 24px}
+.website .hero h3{font-size:27px;font-weight:700;max-width:320px;line-height:1.3}
+.website .hero p{font-size:12.5px;margin-top:10px;max-width:280px;opacity:.7}
+.website .btn{display:inline-block;margin-top:18px;padding:11px 20px;border-radius:8px;font-size:12px;font-weight:700}
+.widget{position:absolute;right:22px;top:70px;bottom:22px;width:228px;border-radius:16px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.5);display:flex;flex-direction:column}
+.widget .whd{padding:14px 16px;font-size:12px;font-weight:700;flex-shrink:0}
+.widget .wbody{padding:14px;display:flex;flex-direction:column;gap:12px;flex:1;overflow:hidden}
+.widget .wbot{font-size:11.5px;padding:9px 12px;border-radius:11px;max-width:90%;line-height:1.45}
+.widget .wme{font-size:11.5px;padding:9px 12px;border-radius:11px;max-width:90%;align-self:flex-end;line-height:1.45}
+.widget .winput{margin:0 14px 14px;border-radius:14px;padding:10px 12px;font-size:11px;flex-shrink:0}
+
+/* ===== RAG scene ===== */
+.ragstage{position:relative;width:680px;height:420px;display:flex;align-items:center;justify-content:center}
+.ragnode{position:relative;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,#c084fc,#4c1d95 70%);box-shadow:0 0 60px rgba(192,132,252,.5);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;z-index:3}
+.ragstage.run .ragnode{animation:pulseGlow 1.8s ease 2.6s both}
+@keyframes pulseGlow{0%{box-shadow:0 0 40px rgba(192,132,252,.4)}50%{box-shadow:0 0 130px rgba(192,132,252,.9)}100%{box-shadow:0 0 80px rgba(192,132,252,.6)}}
+.doc{position:absolute;top:50%;left:50%;width:44px;height:56px;margin:-28px 0 0 -22px;background:#17141c;border:1px solid #2c2738;border-radius:6px;opacity:0;font-size:8px;color:#a78bfa;display:flex;align-items:center;justify-content:center;text-align:center}
+.ragstage.run .doc{animation:conv 2.6s ease forwards}
+@keyframes conv{0%{opacity:1;transform:translate(var(--sx),var(--sy)) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(0,0) scale(.15)}}
+.ragcap{position:absolute;top:24px;left:0;right:0;text-align:center;color:#a78bfa;font-size:11px;letter-spacing:.08em}
+.raganswer{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:#17141c;border:1px solid #2c2738;color:#e9e2f5;padding:12px 20px;border-radius:14px;font-size:12.5px;max-width:380px;text-align:center;opacity:0}
+.ragstage.run .raganswer{animation:fadeUp .8s ease 3.4s forwards}
+@keyframes fadeUp{from{opacity:0;transform:translate(-50%,14px)}to{opacity:1;transform:translate(-50%,0)}}
+</style>
+</head>
+<body>
+<div id="stage">
+
+<div class="pinlabel" id="showcaseLabel"><h1>Multiple Chatbot Designs</h1><p>10 distinct mobile chatbot UI concepts</p></div>
+<div class="pinlabel" id="integrationLabel"><h1>Built to live inside your website</h1></div>
+
+<!-- Scene 0: intro kinetic -->
+<div class="scene" id="s0"><div class="kinetic">Generic AI doesn't know your business.<br>Yours will.<div class="glowbar"></div></div></div>
+
+<!-- Scenes 2–11: 10 phone designs -->
+<div class="scene"><div class="shell"><div class="screen d1"><div class="notch"></div>
+<div class="stbar"><span>9:41</span><span class="icons"><span class="bars"><i></i><i></i><i></i><i></i></span><span class="bat"><i></i></span></span></div>
+<div class="body"><div class="orb"></div><h2>Your Smart <b>Assistant</b> for Any Tasks</h2><p>Get instant help and support with any task</p></div>
+<div class="cta">Get started  →</div><div class="homebar"></div>
+</div></div></div>
+
+<div class="scene"><div class="shell"><div class="screen d2"><div class="notch"></div>
+<div class="stbar"><span>9:41</span><span class="icons"><span class="bars"><i></i><i></i><i></i><i></i></span><span class="bat"><i></i></span></span></div>
+<div class="hd2"><div class="ic-round">≡</div></div>
+<h2>Hi, Josh!</h2><p>What do you want to chat about today?</p>
+<div class="cat"><div class="dot">Ed</div><div><b>Education</b><span>How to apply to universities</span></div></div>
+<div class="cat"><div class="dot">Pr</div><div><b>Productivity</b><span>Be more productive at work</span></div></div>
+<div class="cat"><div class="dot">He</div><div><b>Health &amp; wellness</b><span>Make your health better</span></div></div>
+<div class="inrow"><div class="infield">What's on your mind?</div><div class="send">↑</div></div>
+<div class="homebar"></div>
+</div></div></div>
+
+<div class="scene"><div class="shell"><div class="screen d3"><div class="notch"></div>
+<div class="stbar"><span>9:41</span><span class="icons"><span class="bars"><i></i><i></i><i></i><i></i></span><span class="bat"><i></i></span></span></div>
+<div class="body"><div class="glyph">N</div><div class="lbl">LISTENING</div><h2>Hey Nova, can you help plan a weekend trip to the mountains?</h2></div>
+<div class="row3"><div class="sqbtn">＋</div><div class="sendpill">Send</div><div class="sqbtn">×</div></div>
+<div class="homebar"></div>
+</div></div></div>
+
+<div class="scene"><div class="shell"><div class="screen d4"><div class="notch"></div>
+<div class="stbar"><span>9:41</span><span class="icons"><span class="bars"><i></i><i></i><i></i><i></i></span><span class="bat"><i></i></span></span></div>
+<div class="hd4">←<b>Travel</b><span>⋮</span></div>
+<div class="msgs4">
+<div class="row4"><div class="av4"></div><div class="bub4 bot">Hi, can you suggest a good weekend trip near the city?</div></div>
+<div class="row4"><div class="av4"></div><div class="voice"><span>▶</span><span class="wave4"><i style="height:6px"></i><i style="height:12px"></i><i style="height:8px"></i><i style="height:14px"></i><i style="height:5px"></i></span><span>0:42</span></div></div>
+<div class="row4 me"><div class="bub4 me tw" data-text="Yes, please"></div></div>
+</div>
+<div class="inrow4"><div class="infield4">Your message...</div><div class="mic4">●</div></div>
+<div class="homebar" style="background:rgba(0,0,0,.25)"></div>
+</div></div></div>
+
+<div class="scene"><div class="shell"><div class="screen d5"><div class="notch"></div>
+<div class="stbar"><span>9:41</span><span class="icons"><span class="bars"><i></i><i></i><i></i><i></i></span><span class="bat"><i></i></span></span></div>
+<div class="hd5">NEW CHAT</div>
+<div class="msgs5">
+<div class="row5"><div class="bub5me tw" data-text="How can I be better at studies?"></div></div>
+<div class="bub5bot">3 tips to improve studying:<br>1. Set clear goals<br>2. Build a study schedule<br>3. Practice active recall</div>
+<div class="sugg"><b>Here are ways I can assist</b><div>Smart study routine</div><div>Math solving assistant</div><div>Writing coach</div></div>
+</div>
+<div class="inrow5"><div class="infield5">What is on your mind?</div><div class="send5">↑</div></div>
+<div class="homebar"></div>
+</div></div></div>
+
+<div class="scene"><div class="shell"><div class="screen d6"><div class="blob b1"></div><div class="blob b2"></div><div class="notch"></div>
+<div class="stbar"><span>9:41</span><span class="icons"><span class="bars"><i></i><i></i><i></i><i></i></span><span class="bat"><i></i></span></span></div>
+<div class="body6"><h2>One assistant. Many ways to help.</h2><p>Translate, plan, write, and organize — all in a single chat.</p><div class="cta6">Get started</div></div>
+<div class="homebar"></div>
+</div></div></div>
+
+<div class="scene"><div class="shell"><div class="screen d7"><div class="notch"></div>
+<div class="stbar"><span>9:41</span><span class="icons"><span class="bars"><i></i><i></i><i></i><i></i></span><span class="bat"><i></i></span></span></div>
+<div class="hd7"><div class="av7"></div><div><b>Cynthia Mckay</b><span>How can I help today?</span></div></div>
+<div class="promo"><b>Unlock Pro features</b><p>Work faster with full AI access</p></div>
+<div class="grid7"><div class="gcard"><div class="ic7"></div>Translate</div><div class="gcard"><div class="ic7"></div>Coding</div><div class="gcard"><div class="ic7"></div>Find info</div></div>
+<div class="hist"><h4>HISTORY</h4>
+<div class="hitem"><div class="ic7b"></div><div><b>Hotel search</b><span>Looking for a budget hotel in Paris</span></div></div>
+<div class="hitem"><div class="ic7b"></div><div><b>Travel plan</b><span>Weekend trip near the city</span></div></div>
+</div>
+<div class="homebar" style="background:rgba(0,0,0,.25)"></div>
+</div></div></div>
+
+<div class="scene"><div class="shell"><div class="screen d8"><div class="notch"></div>
+<div class="stbar"><span>9:41</span><span class="icons"><span class="bars"><i></i><i></i><i></i><i></i></span><span class="bat"><i></i></span></span></div>
+<div class="hd8">Wealth Assistant</div>
+<div class="msgs8">
+<div class="card8"><span>Portfolio value</span><b>$48,210.32</b></div>
+<div class="bub8bot">Your portfolio is up 3.2% this month, led by tech holdings.</div>
+<div class="bub8me tw" data-text="Should I rebalance?"></div>
+</div>
+<div class="inrow8"><div class="infield8">Ask about your portfolio</div><div class="send8">↑</div></div>
+<div class="homebar"></div>
+</div></div></div>
+
+<div class="scene"><div class="shell"><div class="screen d9"><div class="notch"></div>
+<div class="stbar"><span>9:41</span><span class="icons"><span class="bars"><i></i><i></i><i></i><i></i></span><span class="bat"><i></i></span></span></div>
+<div class="hd9"><b>How are you feeling?</b></div>
+<div class="moods"><div class="mood on">Calm</div><div class="mood">Anxious</div><div class="mood">Tired</div></div>
+<div class="msgs9">
+<div class="bub9bot">Thanks for sharing. Want to try a short breathing exercise?</div>
+<div class="bub9me tw" data-text="Yes, let's do it"></div>
+</div>
+<div class="inrow9"><div class="infield9">Tell me more...</div><div class="send9">↑</div></div>
+<div class="homebar" style="background:rgba(0,0,0,.2)"></div>
+</div></div></div>
+
+<div class="scene"><div class="shell"><div class="screen d10"><div class="notch"></div>
+<div class="stbar"><span>9:41</span><span class="icons"><span class="bars"><i></i><i></i><i></i><i></i></span><span class="bat"><i></i></span></span></div>
+<div class="hd10">ShopBot</div>
+<div class="msgs10">
+<div class="bub10bot">Here's a great pick under your budget:</div>
+<div class="pcard10"><div class="thumb10"></div><div><b>Trail Runner X</b><span>$74.99</span></div></div>
+<div class="bub10me tw" data-text="Add it to my cart"></div>
+</div>
+<div class="inrow10"><div class="infield10">Search products...</div><div class="send10">↑</div></div>
+<div class="homebar" style="background:rgba(0,0,0,.2)"></div>
+</div></div></div>
+
+<!-- Scenes 13–17: 5 websites with embedded widgets -->
+<div class="scene"><div class="website" style="background:#0d0d12;border:1px solid #1c1c24">
+<div class="nav" style="color:#fff"><div class="logo">Nimbus Analytics</div><div class="navlinks"><span>Product</span><span>Pricing</span><span>Docs</span></div></div>
+<div class="hero" style="color:#fff"><h3>Understand your data,<br>instantly.</h3><p style="opacity:.65">Real-time dashboards for modern teams.</p><div class="btn" style="background:#c084fc;color:#0c0714">Start free trial</div></div>
+<div class="widget" style="background:#0c0714"><div class="whd" style="background:#17101f;color:#fff">Nimbus Assistant</div><div class="wbody"><div class="wbot" style="background:#211a2b;color:#e9e2f5">Hi! Need help with your dashboard?</div><div class="wme" style="background:#c084fc;color:#0c0714">Show me last week's traffic</div></div><div class="winput" style="background:#17101f;color:#7c7186">Ask a question…</div></div>
+</div></div>
+
+<div class="scene"><div class="website" style="background:#12100f;border:1px solid #232019">
+<div class="nav" style="color:#f2efe9"><div class="logo">Ledger&nbsp;Works</div><div class="navlinks"><span>Features</span><span>Templates</span><span>Team</span></div></div>
+<div class="hero" style="color:#f2efe9"><h3>Project management<br>that keeps up.</h3><p style="opacity:.6">Plan, track, and ship with your team.</p><div class="btn" style="background:#d9a441;color:#1a1508">Get started</div></div>
+<div class="widget" style="background:#1c1913"><div class="whd" style="background:#241f16;color:#f2efe9">Workspace Bot</div><div class="wbody"><div class="wbot" style="background:#241f16;color:#e7e2d6">What would you like to plan today?</div><div class="wme" style="background:#d9a441;color:#1a1508">Draft this week's sprint</div></div><div class="winput" style="background:#241f16;color:#8c8672">Type a message…</div></div>
+</div></div>
+
+<div class="scene"><div class="website" style="background:#1a0b1f;border:1px solid #2c1633">
+<div class="nav" style="color:#fff"><div class="logo">Bloom&nbsp;Studio</div><div class="navlinks"><span>Work</span><span>Services</span><span>Contact</span></div></div>
+<div class="hero" style="color:#fff"><h3>Design that moves<br>your brand forward.</h3><p style="opacity:.75">A creative studio for ambitious teams.</p><div class="btn" style="background:#fff;color:#1a0b1f">See our work</div></div>
+<div class="widget" style="background:#26102b"><div class="whd" style="background:#3a1740;color:#fff">Bloom Concierge</div><div class="wbody"><div class="wbot" style="background:#3a1740;color:#fbe6f7">Looking to start a project?</div><div class="wme" style="background:#e879c9;color:#2a0e2e">Yes, tell me more</div></div><div class="winput" style="background:#3a1740;color:#c79ec3">Message us…</div></div>
+</div></div>
+
+<div class="scene"><div class="website" style="background:#0b0e14;border:1px solid #1a1f29">
+<div class="nav" style="color:#eef1f6"><div class="logo">Meridian&nbsp;Capital</div><div class="navlinks"><span>Invest</span><span>Insights</span><span>Login</span></div></div>
+<div class="hero" style="color:#eef1f6"><h3>Wealth management,<br>simplified.</h3><p style="opacity:.6">Personalized investing powered by AI.</p><div class="btn" style="background:#e9c46a;color:#241c05">Open an account</div></div>
+<div class="widget" style="background:#141a24"><div class="whd" style="background:#1b2230;color:#eef1f6">Wealth Assistant</div><div class="wbody"><div class="wbot" style="background:#1b2230;color:#d7dce4">Your portfolio is up 3.2% today.</div><div class="wme" style="background:#e9c46a;color:#241c05">Should I rebalance?</div></div><div class="winput" style="background:#1b2230;color:#697184">Ask about your portfolio…</div></div>
+</div></div>
+
+<div class="scene"><div class="website" style="background:#f3faf6;border:1px solid #dcefe4">
+<div class="nav" style="color:#1f3d31"><div class="logo">Willow&nbsp;Health</div><div class="navlinks"><span>Care</span><span>Providers</span><span>Book</span></div></div>
+<div class="hero" style="color:#1f3d31"><h3>Healthcare that<br>listens to you.</h3><p style="opacity:.65">Book visits and get support, anytime.</p><div class="btn" style="background:#2f7d5c;color:#fff">Book a visit</div></div>
+<div class="widget" style="background:#fff;border:1px solid #dcefe4"><div class="whd" style="background:#eaf6f0;color:#1f3d31">Willow Assistant</div><div class="wbody"><div class="wbot" style="background:#eaf6f0;color:#274438">How are you feeling today?</div><div class="wme" style="background:#2f7d5c;color:#fff">A bit anxious</div></div><div class="winput" style="background:#eaf6f0;color:#8fae9e">Tell me more…</div></div>
+</div></div>
+
+<!-- Scene 18: RAG visualization -->
+<div class="scene" id="ragScene"><div class="ragstage" id="ragStage">
+<div class="ragcap">COMPANY KNOWLEDGE BASE</div>
+<div class="doc" style="--sx:-260px;--sy:-140px;animation-delay:0s">PDF</div>
+<div class="doc" style="--sx:250px;--sy:-160px;animation-delay:.3s">DOCX</div>
+<div class="doc" style="--sx:-280px;--sy:120px;animation-delay:.6s">FAQ</div>
+<div class="doc" style="--sx:260px;--sy:140px;animation-delay:.9s">CSV</div>
+<div class="doc" style="--sx:0px;--sy:-190px;animation-delay:1.2s">POLICY</div>
+<div class="doc" style="--sx:0px;--sy:190px;animation-delay:1.5s">MANUAL</div>
+<div class="ragnode">AI</div>
+<div class="raganswer">"Refunds are accepted within 30 days of purchase, per your return policy."</div>
+</div></div>
+
+<!-- Scenes 19–21: closing kinetic lines -->
+<div class="scene"><div class="kinetic small">Not another generic chatbot.<div class="glowbar"></div></div></div>
+<div class="scene"><div class="kinetic small">Trained entirely on your knowledge.<div class="glowbar"></div></div></div>
+<div class="scene"><div class="kinetic">This is what AI looks like<br>when it's actually yours.<div class="glowbar"></div></div></div>
+
+</div>
+<button id="playBtn" aria-label="Play">▶</button>
+<div id="speedPanel">
+<button data-speed="0.5">0.5x</button>
+<button data-speed="1" class="on">1x</button>
+<button data-speed="1.5">1.5x</button>
+<button data-speed="2">2x</button>
+</div>
+<div id="pauseHint">Space to pause</div>
+<script>
+const scenes=[...document.querySelectorAll('.scene')];
+const ragStage=document.getElementById('ragStage');
+const showcaseLabel=document.getElementById('showcaseLabel');
+const integrationLabel=document.getElementById('integrationLabel');
+// order: [intro, 10 phones (unchanged timing), 5 websites (unchanged timing), rag (slowed), 2 closing lines (slowed), final line (slowed)]
+const introDur=3400;
+const phoneDurations=[1300,1250,1250,1400,1250,1250,1300,1250,1250,1400];
+const websiteDurations=[2000,2000,2000,2000,2000];
+const ragDur=6200;
+const closingDurations=[1900,1900];
+const finalDur=2400;
+const durations=[introDur,...phoneDurations,...websiteDurations,ragDur,...closingDurations,finalDur];
+const sum=a=>a.reduce((x,y)=>x+y,0);
+const phoneStart=introDur;
+const phoneTotal=sum(phoneDurations);
+const websiteStart=phoneStart+phoneTotal;
+const websiteTotal=sum(websiteDurations);
+const ragStart=websiteStart+websiteTotal;
+
+function typeInto(el,speed){
+  const text=el.dataset.text||'';el.textContent='';let i=0;
+  const id=setInterval(()=>{el.textContent+=text[i];i++;if(i>=text.length)clearInterval(id);},speed);
+}
+function showScene(i){
+  scenes.forEach(s=>s.classList.remove('active'));
+  const s=scenes[i];s.classList.add('active');
+  s.querySelectorAll('.tw').forEach(el=>typeInto(el,22));
+  if(s.id==='ragScene'){ragStage.classList.remove('run');void ragStage.offsetWidth;ragStage.classList.add('run');}
+}
+
+// build a flat sequence of steps: each shows a scene (and toggles labels) then holds for a duration
+const steps=[];
+steps.push({run:()=>showScene(0),dur:introDur});
+phoneDurations.forEach((d,i)=>{
+  steps.push({run:()=>{ if(i===0) showcaseLabel.classList.add('show'); showScene(1+i); },dur:d});
+});
+websiteDurations.forEach((d,i)=>{
+  steps.push({run:()=>{ if(i===0){ showcaseLabel.classList.remove('show'); integrationLabel.classList.add('show'); } showScene(11+i); },dur:d});
+});
+steps.push({run:()=>{ integrationLabel.classList.remove('show'); showScene(16); },dur:ragDur});
+steps.push({run:()=>showScene(17),dur:closingDurations[0]});
+steps.push({run:()=>showScene(18),dur:closingDurations[1]});
+steps.push({run:()=>showScene(19),dur:finalDur});
+steps.push({run:()=>{
+    scenes.forEach(s=>s.classList.remove('active'));
+    showcaseLabel.classList.remove('show');integrationLabel.classList.remove('show');
+    const btn=document.getElementById('playBtn');btn.textContent='↻';btn.style.display='flex';
+    document.getElementById('pauseHint').classList.remove('show');
+    started=false;
+  },dur:0});
+
+let stepIndex=-1,remainingMs=0,timeoutId=null,lastTick=0,speed=1,paused=false,started=false;
+
+function armTimer(){
+  lastTick=performance.now();
+  timeoutId=setTimeout(onStepEnd,Math.max(remainingMs/speed,0));
+}
+function onStepEnd(){
+  stepIndex++;
+  if(stepIndex>=steps.length) return;
+  const step=steps[stepIndex];
+  step.run();
+  remainingMs=step.dur;
+  if(remainingMs<=0){ onStepEnd(); return; }
+  armTimer();
+}
+function startPlayback(){
+  started=true;paused=false;
+  document.getElementById('playBtn').style.display='none';
+  document.getElementById('pauseHint').classList.add('show');
+  stepIndex=-1;
+  onStepEnd();
+}
+function pausePlayback(){
+  if(!started||paused) return;
+  paused=true;
+  clearTimeout(timeoutId);
+  const elapsedReal=performance.now()-lastTick;
+  remainingMs-=elapsedReal*speed;
+  const btn=document.getElementById('playBtn');btn.textContent='▶';btn.style.display='flex';
+}
+function resumePlayback(){
+  if(!started||!paused) return;
+  paused=false;
+  document.getElementById('playBtn').style.display='none';
+  armTimer();
+}
+function setSpeed(newSpeed){
+  if(started&&!paused){
+    clearTimeout(timeoutId);
+    const elapsedReal=performance.now()-lastTick;
+    remainingMs-=elapsedReal*speed;
+    speed=newSpeed;
+    armTimer();
+  } else {
+    speed=newSpeed;
+  }
+  document.querySelectorAll('#speedPanel button').forEach(b=>b.classList.toggle('on',parseFloat(b.dataset.speed)===newSpeed));
+}
+
+document.getElementById('playBtn').addEventListener('click',function(){
+  if(!started) startPlayback();
+  else if(paused) resumePlayback();
+});
+document.addEventListener('keydown',function(e){
+  if(e.code!=='Space') return;
+  e.preventDefault();
+  if(!started) startPlayback();
+  else if(paused) resumePlayback();
+  else pausePlayback();
+});
+document.querySelectorAll('#speedPanel button').forEach(b=>{
+  b.addEventListener('click',()=>setSpeed(parseFloat(b.dataset.speed)));
+});
+</script>
+</body>
+</html>
